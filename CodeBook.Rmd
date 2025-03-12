@@ -1,0 +1,58 @@
+---
+title: "CodeBook"
+output: html_document
+date: "2025-03-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Dataframe **combinedData** 
+Includes both the train and test datasets of accelerometer and gyroscope measurements during various activities.  The variables are as follows:
+
+### LABELS
+activity - factor variable with 6 levels (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING)
+
+### SUBJECTS
+subjectid - subject identifier from 1 to 30
+
+### FEATURES - accelerometer and gyroscope data (66 variables)
+The following text in the variable names indicate:
+- Prefix 't' denotes time domain and prefix 'f' denotes frequency domain  
+- 'Acc' denotes accelerometer measurements  
+- 'Gyro' denotes gyroscope measurements  
+- 'Body' and 'Gravity' components of the acceleration signals  
+- 'Jerk' denotes Jerk signals of the accelerometer or gyroscope. 
+- 'Mag' denotes the magnitude of the 3-D signals
+- 'X', 'Y' or 'Z' denote the axial direction  
+- The data are limited to the 'mean' and 'std' (standard deviation)
+
+tBodyAcc[mean|std][X|Y|Z]
+tGravityAcc[mean|std][X|Y|Z]
+tBodyAccJerk[mean|std][X|Y|Z]
+tBodyGyro[mean|std][X|Y|Z]
+tBodyGyroJerk[mean|std][X|Y|Z]
+tBodyAccMag[mean|std]
+tGravityAccMag[mean|std]
+tBodyAccJerkMag[mean|std]
+tBodyGyroMag[mean|std]
+tBodyGyroJerkMag[mean|std]
+fBodyAcc[mean|std][X|Y|Z]
+fBodyAccJerk[mean|std][X|Y|Z]
+fBodyGyro[mean|std][X|Y|Z]
+fBodyAccMag[mean|std]
+fBodyAccJerkMag[mean|std]
+fBodyGyroMag[mean|std]
+fBodyGyroJerkMag[mean|std]
+
+### DATASET
+dataset - which dataset the values derive from TEST or TRAIN
+
+### Dataframe **summaryData** 
+The variables are as described above with the exception of dataset column removed
+The values represent the mean value for each activity and subjec combination
+
+
+
+
