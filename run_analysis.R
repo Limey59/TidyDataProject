@@ -1,64 +1,59 @@
 ## load dplyr package
 library(dplyr)
 
-## set path for data files
-dataPath <- "./data/UCI HAR Dataset/"
+## set URL for file download and path for data files
+fileURL <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+zipFile <- "UCI HAR Dataset.zip"
+dataPath <- "./UCI HAR Dataset/"
 
-## function to extract the second element from a list
-## if not present defaults to first element
+download.file(fileURL,"UCI HAR Dataset.zip")
+unzip("UCI HAR Dataset.zip")
 
-secondElement <- function(x) {if(!is.na(x[2])) x[2] else x[1]}
-
-## read the ordered set of features and labels
-## remove the numeric value at the start of each line of the labels
-features <- readLines(paste0(dataPath,"features.txt"))
-labels <- readLines(paste0(dataPath, "activity_labels.txt"))
-labels <- strsplit(labels, " ") |> sapply(secondElement)
+## read the ordered set of features (column names) and activity labels
+features <- read.table(paste0(dataPath,"features.txt"))
+labels <- read.table(paste0(dataPath, "activity_labels.txt"))
 
 ## read the values for subjects, features and labels for the test cohort
-testSubj <- as.numeric(readLines(paste0(dataPath,"/test/subject_test.txt")))
-testFeatures <- read.fwf(paste0(dataPath,"test/X_test.txt"), rep.int(16,561))
-testLabels <- as.numeric(readLines(paste0(dataPath,"test/y_test.txt")))
-
-
-## combine subjects, features and labels in single data frame
+## combine them into the test data set
+testSubj <- read.table(paste0(dataPath,"/test/subject_test.txt"))
+testFeatures <- read.table(paste0(dataPath,"test/X_test.txt"))
+testLabels <- read.table(paste0(dataPath,"test/y_test.txt"))
 testData <- cbind(testLabels, testSubj, testFeatures)
-names(testData) <- c("activityid", "subjectid", features)
-testData <- mutate(testData, dataset = "TEST")
-remove(testSubj); remove(testFeatures); remove(testLabels)
 
 ## read the values for subjects, features and labels for the train cohort
-trainSubj <- as.numeric(readLines(paste0(dataPath,"train/subject_train.txt")))
-trainFeatures <- read.fwf(paste0(dataPath,"train/X_train.txt"), rep.int(16,561))
-trainLabels <- as.numeric(readLines(paste0(dataPath,"train/y_train.txt")))
-
-## combine subjects, features and labels in single data frame
+## combine them into the train data set
+trainSubj <- read.table(paste0(dataPath,"train/subject_train.txt"))
+trainFeatures <- read.table(paste0(dataPath,"train/X_train.txt"))
+trainLabels <- read.table(paste0(dataPath,"train/y_train.txt"))
 trainData <- cbind(trainLabels, trainSubj, trainFeatures)
-names(trainData) <- c("activityid", "subjectid", features)
-trainData <- mutate(trainData, dataset = "TRAIN")
-remove(trainSubj); remove(trainFeatures); remove(trainLabels)
+
 
 ## merge the test and train data
+## add column names from the second column of the features data frame
 combinedData <- rbind(testData, trainData)
-remove(testData); remove(trainData)
+names(combinedData) <- c("activity", "subjectid", features[,2])
 
-## add activity column label corresponding to the value of activityid
-combinedData <- mutate(activity = labels[activityid], combinedData)
-## convert dataset and activity columns to factor variables
-combinedData$dataset <- as.factor(combinedData$dataset)
+## remove all the temporary data frames
+remove(testSubj); remove(testFeatures); remove(testLabels)
+remove(trainSubj); remove(trainFeatures); remove(trainLabels)
+remove(testData); remove(trainData); remove(features)
+
+## add activity column labels corresponding to the integer value of  the activity
+## convert activity to a factor variable
+activityLookup <- function(x) {labels[x,2]}
+combinedData$activity <- activityLookup(combinedData$activity)
 combinedData$activity <- as.factor(combinedData$activity)
 
-## select columns to retain in the data set (dataset, subjectid, fields with mean or std and activity)
-combinedData <- select(combinedData, activity, subjectid, matches(".*(mean|std)\\(\\)"), dataset)
+## select columns to retain in the data set (activity, subjectid, features with mean or std)
+combinedData <- select(combinedData, activity, subjectid, matches(".*(mean|std)\\(\\)"))
 
-## rename the data frame columns to remove preceding numbers and "()" or "()-"
-names(combinedData) <- strsplit(names(combinedData), " ") |> sapply(secondElement)
+## rename the data frame columns to remove "()" or "()-"
 names(combinedData) <- gsub("\\(\\)|\\(\\)-", "", names(combinedData))
 
-## remove dataset column -> group by activity and subjectid -> 
-## calculate mean of each column by the grouping
-summaryData <- select(combinedData, -dataset) |> group_by(activity, subjectid) |>
-    summarize(across(everything(), mean), .groups='drop')
+## create summary data frame grouped by activity and subjectid and
+## calculate the mean of each grouping over the remaining columns
+summaryData <- group_by(combinedData, activity, subjectid) %>%
+               summarize(across(everything(), mean), .groups='drop')
 
 ## write summaryData to text file summary.txt
 write.table(summaryData, file = paste0(dataPath,"summary.txt"), row.names = FALSE)

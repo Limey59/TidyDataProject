@@ -1,5 +1,5 @@
 ---
-title: "Process for Reading and Cleaning Samsung S3 data"
+title: "Reading and Cleaning Samsung S3 Data"
 output: html_document
 date: "2025-03-11"
 ---
@@ -7,42 +7,38 @@ date: "2025-03-11"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+This project consisted of reading multiple related data files, assembling these 'components' into into a single coherent dataframe, creating a summary of the dataset and writing the summary to a plain text file.
 
-### Reading features and labels
-- The features.txt file represents the data frame column names. 
-- The activity_labels.txt file represents the test string values corresponding to the numeric coded activity in the y-test and y-train data files  
-- Each were read as plain text files into character vectors
-- The labels vector was split and the first element discarded  
-- The first element of the features was retained initially so that the column names would match the underlying data in the x-test and x-train files  
+The entire process is accomplished by running the code in the run_analysis.R file.
 
-### Reading the data (same process utilized for test and train data)
-- The subject and y (activity) values files contained a single value on each line and were read into a character vector and converted to numeric values  
-- The x value file contained data formated a fixed width of 16 characters for each line of 561 variables (features) and were read using the fixed width format function (read.fwf)  
-- The read.fwf function recognized the data as numeric and did not require conversion
+### Downloading the data
+The archived data was downloaded from the following URL:  
+https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip  
+This this archive was unzipped producing a directory (UCI HAR Dataset) containing all the raw data files.
 
-### Combined subjects, labels and features (same process for test and train data)
-- Utilzed cbind to combine subject and label numeric vectores with the features data frame in a new data frame named <test | train>Data  
-- Added the column names from the features character vector. 
-- Added a column named dataset at the end of the data frame containing the name TEST or TRAIN they were loaded from  
-- Removed (deleted) the temporary objects the subjects, labels and features were read into  
+### The raw data is contained in plain text files as follows:  
+- The **features.txt** file contain the dataset variable (column) names. 
+- The **activity_labels.txt** file contain the activity corresponding to the numeric coded activity in the y_test and y_train data files.  
+- The **subjext_test.txt** and **subject_train.txt** files contain the subjectid for each of the measurements in the test and train datasets, respectively.  
+- The **y_test.txt** and **y_train.txt** files contain the numeric coded values of the activity for each measurement.  
+- The **X_test.txt** and **X_train.txt** files contain the accelerometer and gyroscope measurements in fixed width columns of 16 characters.
 
-### Combined the test and train dataframes  
-- Utilized rbind to combine the test and train dataframes  
-- Removed (deleted) the test and train dataframes
+### Reading data files and assembling the dataset
+- Each of the above files were read into dataframes using the read.table() function.  
+- The subject, y (activity) and X (measurements) were combined in a column-wise manner using the cbind() function.
+- The same process was utilized for both the test and train datasets.  
+- The test and train datasets were combined in a row-wise fashion using the rbind() function.  
+- The column names were applied using the values from the features.txt file. 
+- Once the combinedData dataframe was constructed the above dataframes were deleted.  
 
-### Transformed the activity and dataset columns
-- Created a new column containing the activity label text strings corresponding to the values in the labels (y value) data
-- Converted the new activity and dataset columns to factor variables
-
-### Selected the subset of columns for mean and standard deviation
-- Utilized the dplyr select function and a regular expression to select columns that contained mean or std
-
-### Altered column (feature) names to more friendly variable names
-- Removed the leading numeric values by splitting the column names and retaining the second element when preceded by a numeric value  
-- Removed the parentheses if present in the columns name  
+### Transform the combined dataframe
+- Converted the activity column from integer values to the corresponding activity labels using a simple custom look up function.  
+- Converted the activity column to a factor variable.  
+- Utilized the dplyr select function and a regular expression to select columns that contained mean or std.  
+- Removed the parentheses if present in the column names using text substitution.  
 
 ### Create separate summary dataframe of column mean values
-- Utilized sequential select to remove dataset column, group by activity and subjectid and summarize the rest of the columns using the mean function. 
+- Grouped by activity and subjectid and summarized the rest of the columns using the mean function. 
 - Wrote the dataframe to the text file summary.txt
 
 
